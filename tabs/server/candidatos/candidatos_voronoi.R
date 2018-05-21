@@ -165,11 +165,22 @@ mapas_voronois <- eventReactive(input$perfil_candidato_voronoi_gerar_visualizaco
   paleta1 <- colorNumeric(palette = colorRampPalette(colors = c("white", cor_partido))(100), 
                           domain = c(0, max_votos), reverse = F, na.color = cor_partido)
   
-  labels <- sprintf(
-    "<strong>%s</strong> %g </br> <strong>%s</strong> %g",
-    "% Votos", aux2, 
-    "Renda", sf_secoes$renda
-  ) %>% lapply(htmltools::HTML)
+  base_tooltip <- sf_secoes %>% select_(.dots = c("cidade", "pop", PARTIDO, "renda", "homens", "analf", "brancos")) %>%
+    as.data.frame() %>%
+    select(-geometry) %>%
+    mutate(pop = round(pop),
+           partido = paste0(round(100*get(PARTIDO), 2), " %"),
+           renda = paste0("R$ ", round(renda, 2)),
+           homens = paste0(round(100*homens, 2), " %"),
+           analf = paste0(round(100*analf, 2), " %"),
+           brancos = paste0(round(100*brancos, 2), " %")) %>%
+    select_(.dots = c("cidade", "pop", "partido", "renda", "homens", "analf", "brancos")) 
+  
+  base_tooltip[[PARTIDO]] <- NULL
+  
+  toltip <- apply(base_tooltip, MARGIN = 1, FUN = function(x) tooltip_map(title = paste(x[1], "-", x[2]), 
+                                                                          vars = c("Votos", "Renda média", "Homens", "Analfabetismo", "Brancos"), 
+                                                                          values = x[-c(1:2)], integer = F))
   
   bbox_mun <- st_bbox(sf_secoes)
   names(bbox_mun) <- NULL
@@ -182,7 +193,8 @@ mapas_voronois <- eventReactive(input$perfil_candidato_voronoi_gerar_visualizaco
                 fillColor = ~paleta1(get(PARTIDO)),
                 highlightOptions = highlightOptions(color = "white", weight = 2,
                                                     bringToFront = TRUE),
-                label = labels,
+                #label = ~cidade,
+                popup = toltip,
                 labelOptions = labelOptions(
                   style = list("font-weight" = "normal", padding = "3px 8px"),
                   textsize = "12px",
@@ -197,7 +209,7 @@ mapas_voronois <- eventReactive(input$perfil_candidato_voronoi_gerar_visualizaco
   variavel_label <- input$perfil_candidato_voronoi_variavel
   
   variavel <- switch(variavel_label,
-                     "log(Renda)" = "log_renda",
+                     "Renda" = "log_renda",
                      "Renda (categorizada)" = "renda_cat",
                      "% brancos"= "brancos", 
                      "% não brancos"= "nao_brancos", 
@@ -227,16 +239,29 @@ mapas_voronois <- eventReactive(input$perfil_candidato_voronoi_gerar_visualizaco
   if(!(variavel %in% c("log_renda", "renda_cat"))){
     sf_secoes[, variavel] <- sf_secoes[, variavel, drop = T]
     
-    labels <- sprintf(
-      "<strong>%s</strong></br> %g",
-      variavel_label, round(100*sf_secoes[, variavel, drop = T], 2)
-    ) %>% lapply(htmltools::HTML)
+    base_tooltip <- sf_secoes %>% select_(.dots = c("cidade", "pop", variavel)) %>%
+      as.data.frame() %>%
+      select(-geometry) %>%
+      mutate(pop = round(pop),
+             variavel = paste0(round(100*get(variavel), 2), " %")) %>%
+      select_(.dots = c("cidade", "pop", "variavel")) 
+    
+    toltip <- apply(base_tooltip, MARGIN = 1, FUN = function(x) tooltip_map(title = paste(x[1], "-", x[2]), 
+                                                                            vars = variavel_label, 
+                                                                            values = x[-c(1:2)], integer = F)) 
     
   } else{
-    labels <- sprintf(
-      "<strong>%s</strong></br> %g",
-      variavel_label, sf_secoes[, variavel, drop = T]
-    ) %>% lapply(htmltools::HTML)
+    
+    base_tooltip <- sf_secoes %>% select_(.dots = c("cidade", "pop", "renda")) %>%
+      as.data.frame() %>%
+      select(-geometry) %>%
+      mutate(pop = round(pop),
+             renda = paste0("R$", round(renda, 2))) %>%
+      select_(.dots = c("cidade", "pop", "renda")) 
+    
+    toltip <- apply(base_tooltip, MARGIN = 1, FUN = function(x) tooltip_map(title = paste(x[1], "-", x[2]), 
+                                                                            vars = c("Renda média"), 
+                                                                            values = x[-c(1:2)], integer = F))
     
   }
   
@@ -257,18 +282,29 @@ mapas_voronois <- eventReactive(input$perfil_candidato_voronoi_gerar_visualizaco
                 fillColor = ~paleta1(get(variavel)),
                 highlightOptions = highlightOptions(color = "white", weight = 2,
                                                     bringToFront = TRUE),
-                label = labels,
+                popup = toltip,
                 labelOptions = labelOptions(
                   style = list("font-weight" = "normal", padding = "3px 8px"),
                   textsize = "12px",
                   direction = "auto"))
   
-  if(variavel %in% c("log_renda", "renda_cat")){
+  if(variavel == "log_renda"){
+    l2 <- l2 %>%
+      addLegend("bottomright", pal = paleta1, values = ~get(variavel),
+                labFormat = labelFormat(prefix = "R$%", digits = 2, transform = function(x) exp(x)),
+                title = variavel_label,
+                opacity = .9)
+    
+  } 
+  
+  if(variavel == "renda_cat"){
     l2 <- l2 %>%
       addLegend("bottomright", pal = paleta1, values = ~get(variavel),
                 title = variavel_label,
                 opacity = .9)
-  } else{
+  }
+  
+  if(!(variavel %in% c("log_renda", "renda_cat"))){
     l2 <- l2 %>% 
       addLegend("bottomright", pal = paleta1, values = ~get(variavel),
                 title = variavel_label,

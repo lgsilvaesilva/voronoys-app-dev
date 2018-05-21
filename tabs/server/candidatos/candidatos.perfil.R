@@ -287,9 +287,9 @@ output$perfil_candidatos_mapa <- renderLeaflet({
     
     shape@data$`Número de votos` <- formatC(shape@data$`Número de votos`, big.mark = ".", decimal.mark = ",", format = "d")
     shape@data$`prop_numerica` <- shape@data$`Proporção`
-    shape@data$`Proporção` <- paste(round(shape@data$Proporção*100, 2), "%")
+    shape@data$`Proporção` <- paste(round(shape@data$prop_numerica*100, 2), "%")
     
-    dados_popup <- shape@data[, c("Estado", "Número de votos", "Proporção")]
+    dados_popup <- shape@data[, c("UF", "Número de votos", "Proporção")]
     popup <- apply(dados_popup, MARGIN = 1, FUN = function(x) tooltip_map(title = x[1], 
                                                                           vars = names(dados_popup)[-1], 
                                                                           values = x[-1],

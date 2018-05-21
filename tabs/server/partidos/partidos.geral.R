@@ -104,20 +104,22 @@ base_coligacoes <- eventReactive(input$partidos_gerar_visualizacoes1, {
     pref$id <- 1:dim(pref)[1]
     
     coligacoes <- strsplit(pref$COMPOSICAO_COLIGACAO, split = " / ")
+    coligacoes <- lapply(coligacoes, FUN =  stringr::str_replace_all, pattern = "/", replacement = "")
+    coligacoes <- lapply(coligacoes, FUN =  stringr::str_trim, side = "both")
     
-    partidos_vec <- unique(unlist(coligacoes, use.names = FALSE))
     names(coligacoes) <- pref$SIGLA_PARTIDO
     all_coligation <- lapply(seq_along(coligacoes), function(i) data.frame(SIGLA_PARTIDO = names(coligacoes)[[i]],
                                                                            PARTIDO_COLIGACAO = coligacoes[[i]], 
+                                                                           N_MUN = pref$tot[i],
                                                                            stringsAsFactors = F))
     
     all_coligation <- rbindlist(all_coligation)
-    names(all_coligation) <- c("SIGLA_PARTIDO", "PARTIDO_COLIGACAO")
+    names(all_coligation) <- c("SIGLA_PARTIDO", "PARTIDO_COLIGACAO", "NUMERO_MUNICIPIOS")
     all_coligation <- all_coligation[!all_coligation$SIGLA_PARTIDO == all_coligation$PARTIDO_COLIGACAO,]
     
     all_coligation <- all_coligation %>%
       group_by(SIGLA_PARTIDO, PARTIDO_COLIGACAO) %>%
-      summarise(tot_coligacao = n()) %>%
+      summarise(tot_coligacao = sum(NUMERO_MUNICIPIOS)) %>%
       arrange(desc(tot_coligacao))
     
     ordem <- all_coligation %>%
@@ -146,21 +148,23 @@ base_coligacoes <- eventReactive(input$partidos_gerar_visualizacoes1, {
     pref$id <- 1:dim(pref)[1]
     
     coligacoes <- strsplit(pref$COMPOSICAO_COLIGACAO, split = " / ")
+    coligacoes <- lapply(coligacoes, FUN =  stringr::str_replace_all, pattern = "/", replacement = "")
+    coligacoes <- lapply(coligacoes, FUN =  stringr::str_trim, side = "both")
     
-    partidos_vec <- unique(unlist(coligacoes, use.names = FALSE))
     names(coligacoes) <- pref$SIGLA_PARTIDO
     all_coligation <- lapply(seq_along(coligacoes), function(i) data.frame(SIGLA_PARTIDO = names(coligacoes)[[i]],
                                                                            PARTIDO_COLIGACAO = coligacoes[[i]], 
+                                                                           N_MUN = pref$tot[i],
                                                                            stringsAsFactors = F))
     
     all_coligation <- rbindlist(all_coligation)
-    names(all_coligation) <- c("SIGLA_PARTIDO", "PARTIDO_COLIGACAO")
+    names(all_coligation) <- c("SIGLA_PARTIDO", "PARTIDO_COLIGACAO", "NUMERO_MUNICIPIOS")
     
     all_coligation <- all_coligation[!(all_coligation$SIGLA_PARTIDO == all_coligation$PARTIDO_COLIGACAO),]
     
     all_coligation <- all_coligation %>%
       group_by(SIGLA_PARTIDO, PARTIDO_COLIGACAO) %>%
-      summarise(tot_coligacao = n()) %>%
+      summarise(tot_coligacao = sum(NUMERO_MUNICIPIOS)) %>%
       arrange(desc(tot_coligacao))
     
     ordem <- all_coligation %>%

@@ -63,23 +63,23 @@ partido_analise <- tabPanel(title = "Análise Partidária",
                                                            )           
                                           )
                                    )
-                            ),
-                            column(width = 4, offset = 4,
-                                   conditionalPanel(condition = "input.partidos_gerar_visualizacoes > 0",
-                                                    hr(),
-                                                    HTML("<center>"),
-                                                    pickerInput(inputId = "partido_partido_mapa", 
-                                                                label = "Partido", 
-                                                                choices = levels(factor(x = c("Todos os partidos", partidos),
-                                                                                        levels = c("Todos os partidos", partidos))), 
-                                                                selected = "Todos os partidos",
-                                                                options = list(`live-search` = TRUE,
-                                                                               `none-selected-text` = "Nenhum partido selecionado")),
-                                                    HTML("</center>"),
-                                                    HTML("<center><h1>Mapa de Candidatos</h1></center>"),
-                                                    column(width = 12,
-                                                           withSpinner(leafletOutput("mapa_cand"), type = 6)
-                                                    ) 
-                                   )
-                            )
+                            )#,
+                            # column(width = 4, offset = 4,
+                            #        conditionalPanel(condition = "input.partidos_gerar_visualizacoes > 0",
+                            #                         hr(),
+                            #                         HTML("<center>"),
+                            #                         pickerInput(inputId = "partido_partido_mapa", 
+                            #                                     label = "Partido", 
+                            #                                     choices = levels(factor(x = c("Todos os partidos", partidos),
+                            #                                                             levels = c("Todos os partidos", partidos))), 
+                            #                                     selected = "Todos os partidos",
+                            #                                     options = list(`live-search` = TRUE,
+                            #                                                    `none-selected-text` = "Nenhum partido selecionado")),
+                            #                         HTML("</center>"),
+                            #                         HTML("<center><h1>Mapa de Candidatos</h1></center>"),
+                            #                         column(width = 12,
+                            #                                withSpinner(leafletOutput("mapa_cand"), type = 6)
+                            #                         ) 
+                            #        )
+                            # )
 )

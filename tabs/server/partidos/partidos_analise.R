@@ -30,35 +30,35 @@ observeEvent(input$partido_ano,{
   
 }, priority = 1)
 ##-- ++ Atualizações dos partidos mapa ----
-observeEvent(c(input$partido_ano,
-               input$partido_cargo),{
-                 
-                 ano <- isolate(input$partido_ano)
-                 cargo <- isolate(input$partido_cargo)
-                 
-                 if(!is.null(cargo)){
-                   chaves_sub <- chaves %>%
-                     filter(ANO_ELEICAO == ano & CODIGO_CARGO == cargo) %>%
-                     collect()
-                   
-                   ##-- Setando o cargo default
-                   partidos <- levels(factor(x = sort(unique(chaves_sub$SIGLA_PARTIDO)),
-                                             levels = sort(unique(chaves_sub$SIGLA_PARTIDO))))
-                   partido_default <- input$partido_partido_mapa
-                   
-                   if(!(partido_default %in% partidos)){
-                     partido_default <- partidos[1]
-                   }
-                   
-                   ##-- Atualizando os partidos ----
-                   updatePickerInput(session = session,
-                                     inputId = "partido_partido_mapa",
-                                     label = "Partido",
-                                     choices = partidos,
-                                     selected = partido_default)
-                 }
-                 
-               }, priority = 2)
+# observeEvent(c(input$partido_ano,
+#                input$partido_cargo),{
+#                  
+#                  ano <- isolate(input$partido_ano)
+#                  cargo <- isolate(input$partido_cargo)
+#                  
+#                  if(!is.null(cargo)){
+#                    chaves_sub <- chaves %>%
+#                      filter(ANO_ELEICAO == ano & CODIGO_CARGO == cargo) %>%
+#                      collect()
+#                    
+#                    ##-- Setando o cargo default
+#                    partidos <- levels(factor(x = sort(unique(chaves_sub$SIGLA_PARTIDO)),
+#                                              levels = sort(unique(chaves_sub$SIGLA_PARTIDO))))
+#                    partido_default <- input$partido_partido_mapa
+#                    
+#                    if(!(partido_default %in% partidos)){
+#                      partido_default <- partidos[1]
+#                    }
+#                    
+#                    ##-- Atualizando os partidos ----
+#                    updatePickerInput(session = session,
+#                                      inputId = "partido_partido_mapa",
+#                                      label = "Partido",
+#                                      choices = partidos,
+#                                      selected = partido_default)
+#                  }
+#                  
+#                }, priority = 2)
 ##-- ++ Atualizações dos partidos donuts ----
 observeEvent(c(input$partido_ano,
                input$partido_cargo),{
@@ -90,60 +90,60 @@ observeEvent(c(input$partido_ano,
                  
                }, priority = 3)
 ##-- + Dados de npumero de candidadtos ----
-base_ncand <- eventReactive(c(input$partido_partido_mapa, input$partidos_gerar_visualizacoes), {
-  
-  ano <- input$partido_ano
-  cargo <- input$partido_cargo
-  partido <- input$partido_partido_mapa
-  
-  if(partido == "Todos os partidos"){
-    partido <- partidos
-  }
-
-  data("regUF")
-  
-  n_cand <- dados_gerais %>%
-    filter(ANO_ELEICAO == ano & CODIGO_CARGO == cargo) %>% 
-    mutate(DESCRICAO_CARGO = toupper(DESCRICAO_CARGO)) %>%
-    select(ANO_ELEICAO, UF, SIGLA_PARTIDO, DESCRICAO_CARGO, DESC_SIT_TOT_TURNO, NUM_TURNO) %>%
-    distinct() %>%
-    collect() %>%
-    spread(key = NUM_TURNO, value = DESC_SIT_TOT_TURNO)
-  
-  if(is.null(n_cand$`2`)){
-    
-    n_cand <- n_cand %>%
-      group_by(SIGLA_PARTIDO, DESCRICAO_CARGO, UF, ANO_ELEICAO) %>%
-      summarise(n_partido = n(),
-                n_eleito_partido = sum(`1` == 'ELEITO')) %>%
-      ungroup() %>%
-      group_by(UF) %>%
-      mutate(cand_state = sum(n_partido),
-             prop_cand = n_partido/cand_state) %>%
-      filter(SIGLA_PARTIDO %in% partido)
-    
-  } else{
-    
-    n_cand <- n_cand %>%
-      mutate(SITUACAO_TURNO = case_when(`1` == "ELEITO" ~ "ELEITO",
-                                        `1` == "NÃO ELEITO" ~ "NÃO ELEITO",
-                                        `2` == "ELEITO" ~ "ELEITO",
-                                        `2` == "NÃO ELEITO" ~ "NÃO ELEITO")) %>%
-      group_by(SIGLA_PARTIDO, DESCRICAO_CARGO, UF, ANO_ELEICAO) %>%
-      summarise(n_partido = n(),
-                n_eleito_partido = sum(SITUACAO_TURNO == 'ELEITO')) %>%
-      ungroup() %>%
-      group_by(UF) %>%
-      mutate(cand_state = sum(n_partido),
-             prop_cand = n_partido/cand_state) %>%
-      filter(SIGLA_PARTIDO %in% partido)
-    
-  }
-  
-  base <- merge(regUF, n_cand, by.x = "COD", by.y = "UF")
-  
-  return(base)
-})
+# base_ncand <- eventReactive(c(input$partido_partido_mapa, input$partidos_gerar_visualizacoes), {
+#   
+#   ano <- input$partido_ano
+#   cargo <- input$partido_cargo
+#   partido <- input$partido_partido_mapa
+#   
+#   if(partido == "Todos os partidos"){
+#     partido <- partidos
+#   }
+# 
+#   data("regUF")
+#   
+#   n_cand <- dados_gerais %>%
+#     filter(ANO_ELEICAO == ano & CODIGO_CARGO == cargo) %>% 
+#     mutate(DESCRICAO_CARGO = toupper(DESCRICAO_CARGO)) %>%
+#     select(ANO_ELEICAO, UF, SIGLA_PARTIDO, DESCRICAO_CARGO, DESC_SIT_TOT_TURNO, NUM_TURNO) %>%
+#     distinct() %>%
+#     collect() %>%
+#     spread(key = NUM_TURNO, value = DESC_SIT_TOT_TURNO)
+#   
+#   if(is.null(n_cand$`2`)){
+#     
+#     n_cand <- n_cand %>%
+#       group_by(SIGLA_PARTIDO, DESCRICAO_CARGO, UF, ANO_ELEICAO) %>%
+#       summarise(n_partido = n(),
+#                 n_eleito_partido = sum(`1` == 'ELEITO')) %>%
+#       ungroup() %>%
+#       group_by(UF) %>%
+#       mutate(cand_state = sum(n_partido),
+#              prop_cand = n_partido/cand_state) %>%
+#       filter(SIGLA_PARTIDO %in% partido)
+#     
+#   } else{
+#     
+#     n_cand <- n_cand %>%
+#       mutate(SITUACAO_TURNO = case_when(`1` == "ELEITO" ~ "ELEITO",
+#                                         `1` == "NÃO ELEITO" ~ "NÃO ELEITO",
+#                                         `2` == "ELEITO" ~ "ELEITO",
+#                                         `2` == "NÃO ELEITO" ~ "NÃO ELEITO")) %>%
+#       group_by(SIGLA_PARTIDO, DESCRICAO_CARGO, UF, ANO_ELEICAO) %>%
+#       summarise(n_partido = n(),
+#                 n_eleito_partido = sum(SITUACAO_TURNO == 'ELEITO')) %>%
+#       ungroup() %>%
+#       group_by(UF) %>%
+#       mutate(cand_state = sum(n_partido),
+#              prop_cand = n_partido/cand_state) %>%
+#       filter(SIGLA_PARTIDO %in% partido)
+#     
+#   }
+#   
+#   base <- merge(regUF, n_cand, by.x = "COD", by.y = "UF")
+#   
+#   return(base)
+# })
 ##-- + Dados necessários para o donnut ----
 donut <- reactive({
   
@@ -159,6 +159,7 @@ donut <- reactive({
 })
 ##-- + Gráficos ----
 donuts_tabelas <- eventReactive(c(input$partido_partido_donuts, input$partidos_gerar_visualizacoes), {
+  
   dados_cand_part <- donut()
   
   ##-- Donnuts ----
@@ -174,7 +175,7 @@ donuts_tabelas <- eventReactive(c(input$partido_partido_donuts, input$partidos_g
     sex_cand_par <- sex_cand_par  %>%
       group_by(DESCRICAO_SEXO) %>%
       summarise(n_partido = n_distinct(CPF_CANDIDATO),
-                n_eleito_partido = sum(DESC_SIT_TOT_TURNO == 'ELEITO')) %>%
+                n_eleito_partido = sum(DESC_SIT_TOT_TURNO %in% c('ELEITO', 'ELEITO POR QP', 'ELEITO POR MÉDIA'))) %>%
       arrange(desc(n_partido)) %>%
       mutate(percn = n_partido/sum(n_partido),
              percn_acum = cumsum(percn),
@@ -187,7 +188,7 @@ donuts_tabelas <- eventReactive(c(input$partido_partido_donuts, input$partidos_g
     sex_cand_par <- sex_cand_par %>%
       group_by(DESCRICAO_SEXO, SIGLA_PARTIDO) %>%
       summarise(n_partido = n_distinct(CPF_CANDIDATO),
-                n_eleito_partido = sum(DESC_SIT_TOT_TURNO == 'ELEITO')) %>%
+                n_eleito_partido = sum(DESC_SIT_TOT_TURNO %in% c('ELEITO', 'ELEITO POR QP', 'ELEITO POR MÉDIA'))) %>%
       ungroup() %>%
       arrange(desc(n_partido)) %>%
       filter(SIGLA_PARTIDO == partido_sel) %>%
@@ -228,7 +229,7 @@ donuts_tabelas <- eventReactive(c(input$partido_partido_donuts, input$partidos_g
     raca_cand_par <- raca_cand_par  %>%
       group_by(DESCRICAO_COR_RACA) %>%
       summarise(n_partido = n_distinct(CPF_CANDIDATO),
-                n_eleito_partido = sum(DESC_SIT_TOT_TURNO == 'ELEITO')) %>%
+                n_eleito_partido = sum(DESC_SIT_TOT_TURNO %in% c('ELEITO', 'ELEITO POR QP', 'ELEITO POR MÉDIA'))) %>%
       arrange(desc(n_partido)) %>%
       mutate(percn = n_partido/sum(n_partido),
              percn_acum = cumsum(percn),
@@ -241,7 +242,7 @@ donuts_tabelas <- eventReactive(c(input$partido_partido_donuts, input$partidos_g
     raca_cand_par <- raca_cand_par %>%
       group_by(DESCRICAO_COR_RACA, SIGLA_PARTIDO) %>%
       summarise(n_partido = n_distinct(CPF_CANDIDATO),
-                n_eleito_partido = sum(DESC_SIT_TOT_TURNO == 'ELEITO')) %>%
+                n_eleito_partido = sum(DESC_SIT_TOT_TURNO %in% c('ELEITO', 'ELEITO POR QP', 'ELEITO POR MÉDIA'))) %>%
       ungroup() %>%
       arrange(desc(n_partido)) %>%
       filter(SIGLA_PARTIDO == partido_sel) %>%
@@ -282,7 +283,7 @@ donuts_tabelas <- eventReactive(c(input$partido_partido_donuts, input$partidos_g
     inst_cand_par <- inst_cand_par  %>%
       group_by(DESCRICAO_GRAU_INSTRUCAO) %>%
       summarise(n_partido = n_distinct(CPF_CANDIDATO),
-                n_eleito_partido = sum(DESC_SIT_TOT_TURNO == 'ELEITO')) %>%
+                n_eleito_partido = sum(DESC_SIT_TOT_TURNO %in% c('ELEITO', 'ELEITO POR QP', 'ELEITO POR MÉDIA'))) %>%
       arrange(desc(n_partido)) %>%
       mutate(percn = n_partido/sum(n_partido),
              percn_acum = cumsum(percn),
@@ -297,7 +298,7 @@ donuts_tabelas <- eventReactive(c(input$partido_partido_donuts, input$partidos_g
     inst_cand_par <- inst_cand_par %>%
       group_by(DESCRICAO_GRAU_INSTRUCAO, SIGLA_PARTIDO) %>%
       summarise(n_partido = n_distinct(CPF_CANDIDATO),
-                n_eleito_partido = sum(DESC_SIT_TOT_TURNO == 'ELEITO')) %>%
+                n_eleito_partido = sum(DESC_SIT_TOT_TURNO %in% c('ELEITO', 'ELEITO POR QP', 'ELEITO POR MÉDIA'))) %>%
       ungroup() %>%
       arrange(desc(n_partido)) %>%
       filter(SIGLA_PARTIDO == partido_sel) %>%
@@ -340,7 +341,8 @@ donuts_tabelas <- eventReactive(c(input$partido_partido_donuts, input$partidos_g
 })
 ##-- ++ Candidatos por partido e UF ----
 output$mapa_cand <- renderLeaflet({
-  base <- base_ncand()
+
+    base <- base_ncand()
   ##-- Mapa dos candidatos ----
   pal <- colorBin("YlOrRd", domain = base$n, bins = 10)
   

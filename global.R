@@ -73,6 +73,7 @@ tab_files <- list.files(path = "tabs", full.names = T, recursive = T)
 tab_files <- tab_files[-grep(x = tab_files, pattern = "server")]
 
 suppressMessages(lapply(tab_files, source))
+
 ##-- Chamando os shapes do mapsBR ----
 data("regMun")
 data("regUF")
